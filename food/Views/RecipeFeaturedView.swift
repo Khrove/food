@@ -10,6 +10,7 @@ import SwiftUI
 struct RecipeFeaturedView: View {
     @EnvironmentObject var model: RecipeModel
     @State var isDetailViewShowing = false
+    @State var tabSelectionIndex = 0
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -20,7 +21,7 @@ struct RecipeFeaturedView: View {
                 .bold()
             
             GeometryReader { geo in
-                TabView {
+                TabView(selection: $tabSelectionIndex) {
                     // 0 -> 9 (if the count of recipes is 10)
                     ForEach (0..<model.recipes.count) { index in
                         if model.recipes[index].featured {
@@ -42,7 +43,8 @@ struct RecipeFeaturedView: View {
                                             .padding(5)
                                     }
                                 }
-                            }).sheet(isPresented: $isDetailViewShowing) {
+                            }).tag(index)
+                            .sheet(isPresented: $isDetailViewShowing) {
                                 // Show the recipe detail view
                                 RecipeDetailView(recipe: model.recipes[index])
                             }
@@ -69,12 +71,22 @@ struct RecipeFeaturedView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Preperation Time:")
                     .font(.headline)
-                Text("1 Hour")
+                Text(model.recipes[tabSelectionIndex].prepTime)
                 Text("Highlights")
                     .font(.headline)
-                Text("Healthy, Hearty")
+                RecipeHighlights(highlights: model.recipes[tabSelectionIndex].highlights)
             }.padding([.leading, .bottom])
+        }.onAppear(perform: {
+            setFeaturedIndex()
+        })
+    }
+    
+    func setFeaturedIndex() {
+        // Find the first recipe that is featured in the json file
+        var index = model.recipes.firstIndex { (recipe) -> Bool in
+            return recipe.featured
         }
+        tabSelectionIndex = index ?? 0
     }
 }
 
