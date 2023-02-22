@@ -13,18 +13,19 @@ struct RecipeFeaturedView: View {
     @State var tabSelectionIndex = 0
     
     var body: some View {
+        
+        let featuredRecipes = model.recipes.filter({ $0.featured })
+        
         VStack(alignment: .leading, spacing: 0) {
             Text("Featured Recipes")
                 .padding(.leading)
                 .padding(.top, 40)
-                .font(.largeTitle)
                 .bold()
+                .font(Font.custom("Avenir Heavy", size: 24))
             
             GeometryReader { geo in
                 TabView(selection: $tabSelectionIndex) {
-                    // 0 -> 9 (if the count of recipes is 10)
-                    ForEach (0..<model.recipes.count) { index in
-                        if model.recipes[index].featured {
+                    ForEach (0..<featuredRecipes.count) { index in
                             // Recipe card
                             Button(action: {
                                 // Show the recipe details sheet
@@ -35,19 +36,16 @@ struct RecipeFeaturedView: View {
                                         .foregroundColor(.white)
                                         
                                     VStack(spacing: 0) {
-                                        Image(model.recipes[index].image)
+                                        Image(featuredRecipes[index].image)
                                             .resizable()
                                             .aspectRatio(contentMode: .fill)
                                             .clipped()
-                                        Text(model.recipes[index].name)
+                                        Text(featuredRecipes[index].name)
                                             .padding(5)
+                                            .font(Font.custom("Avenir", size: 18))
                                     }
                                 }
                             }).tag(index)
-                            .sheet(isPresented: $isDetailViewShowing) {
-                                // Show the recipe detail view
-                                RecipeDetailView(recipe: model.recipes[index])
-                            }
                             .buttonStyle(PlainButtonStyle())
                                 .frame(
                                     width: geo.size.width - 40,
@@ -60,7 +58,6 @@ struct RecipeFeaturedView: View {
                                     x: -5,
                                     y: 5)
                         }
-                    }
                 }
                 .tabViewStyle(PageTabViewStyle(
                     indexDisplayMode: .automatic
@@ -70,13 +67,18 @@ struct RecipeFeaturedView: View {
             }
             VStack(alignment: .leading, spacing: 10) {
                 Text("Preperation Time:")
-                    .font(.headline)
+                    .font(Font.custom("Avenir Heavy", size: 16))
                 Text(model.recipes[tabSelectionIndex].prepTime)
+                    .font(Font.custom("Avenir", size: 15))
                 Text("Highlights")
-                    .font(.headline)
+                    .font(Font.custom("Avenir Heavy", size: 16))
                 RecipeHighlights(highlights: model.recipes[tabSelectionIndex].highlights)
             }.padding([.leading, .bottom])
-        }.onAppear(perform: {
+        }.sheet(isPresented: $isDetailViewShowing) {
+            // Show the recipe detail view
+            RecipeDetailView(recipe: featuredRecipes[tabSelectionIndex])
+        }
+        .onAppear(perform: {
             setFeaturedIndex()
         })
     }
